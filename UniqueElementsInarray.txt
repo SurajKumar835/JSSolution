@@ -1,0 +1,9 @@
+                var result = [];
+                var idsSeen = {}, idSeenValue = {};
+                for (var i = 0, len = ArrayName.length, id; i < len; ++i) {
+                    id = ArrayName[i].Value;
+                    if (idsSeen[id] !== idSeenValue) {
+                        result.push(ArrayName[i]);
+                        idsSeen[id] = idSeenValue;
+                    }
+                }
