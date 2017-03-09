@@ -1,0 +1,9 @@
+for unchecking all the Selected options of a multiselect dropdown in js.You can use the array of options of dropdown.And Loop through it and set the selected attribute to false.
+
+for(var i=0;i<listName.length;i++)
+{
+	if(listName[i].Selected==true)
+	{
+		listName[i].Selected=false;
+	}
+}
