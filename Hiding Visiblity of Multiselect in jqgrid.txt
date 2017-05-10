@@ -1,0 +1,11 @@
+   ***//// Approach for hiding visibility of multiselect of a specific row in jQgrid table by considering specific conditions  ////***
+   
+   var status = JqgridTableName.jqGrid('getCell', rowId, 'ColumnName');
+                            if (status == "String to Match") {
+                                $(value).html("<i class='fa fa-search fa-lg'></i>");
+                                $(value).attr("title", "Visibility of muliselect,Hooray!!");
+                                $("#jqg_TableName_"+id).css("visibility", "hidden");
+                                $(value).on('click', function () { //Edit button click
+                                    Functioncall ();
+                                });
+                            }
