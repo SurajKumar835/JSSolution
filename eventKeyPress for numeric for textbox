@@ -1,0 +1,3 @@
+   <input type="text" name="AadharNumber" value="@Model.farmerMasterViewModel.AadharNumber" 
+   onkeydown='return (event.which >= 48 && event.which <= 57 && event.shiftKey == false) ||event.which==35 ||event.which==36|| event.which == 8 || event.which == 46 || event.which == 37 
+   || event.which == 39' class="form-control @FarmerFormDataClass" id="@AadharNumber" title="@Resources.LocalizedStrings.AadharCard">
