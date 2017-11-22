@@ -1,0 +1,287 @@
+<script type="text/javascript">
+    var assignToId = '@assignTo';
+    $(document).ready(function () {
+        debugger;
+
+        var activityScheduleAttributeGrid = '@activityScheduleAttributeGrid';
+
+        var inputObject = {
+            ActivityID: '@Model.ActivityID'
+        };
+        var fixWidth = function (e, tr) {
+            var $originals = tr.children();
+            var $helper = tr.clone();
+            $helper.children().each(function (index) {
+                $(this).width($originals.eq(index).width())
+            });
+            return $helper;
+        };
+
+        $('#' + activityScheduleAttributeGrid).find('tbody').sortable({
+            placeholder: "ui-state-highlight",
+            helper: fixWidth,
+            cursor: "move",
+            items: '> tr',
+            forcePlaceholderSize: true,
+            stop: function (event, ui) {
+                var sequenceNoColIndex = -1;
+                $(this).find('tr:first').find('td').each(function (index, value) {
+                    if ($(this).attr('data-id') != undefined) {
+
+                        if ($(this).attr('data-id') == "SequenceNo") {
+                            sequenceNoColIndex = index;
+                        }
+                    }
+                });
+                $(this).find('tr').each(function (i, value) {
+                    $(this).find('td:eq(' + sequenceNoColIndex + ')').text(i + 1);
+                });
+            },
+            start: function (event, ui) {
+                var cellCount = 0;
+                $('td, th', ui.helper).each(function () {
+                    var colspan = 1;
+                    var colspanAttr = $(this).attr('colspan');
+                    if (colspanAttr > 1) {
+                        colspan = colspanAttr;
+                    }
+                    cellCount += colspan;
+                });
+                ui.placeholder.html('<td colspan="' + cellCount + '">&nbsp;</td>');
+            }
+
+        });
+        var i = 1;
+        $("#" + '@cloneActivitySchedule').on("click", function (event) {
+            event.preventDefault();
+            cloneTargetDiv = "activityScheduleForm_" + event.currentTarget.getAttribute('id').substr(21, 36);
+            var oldUid = cloneTargetDiv.substr(21, 36);
+
+            $cloned_users = $(this).closest('.' + cloneTargetDiv).clone(true, true);
+            $cloned_users.attr('id', $cloned_users.attr('id'));
+            // Change all ids
+            var uid = guid();
+            $cloned_users.find('legend').find('a').text($cloned_users.find('legend').find('a').text() + "_" + (i));
+            $cloned_users.last().find('select').clone();
+            $cloned_users.find('*[id]').each(function () {
+                $elm = $(this);
+                $elm.attr('id', $elm.attr('id').replace(oldUid, uid));
+                if ($elm.attr('aria-controls') != undefined) {
+                    $elm.attr('aria-controls', $elm.attr('aria-controls').replace(oldUid, uid));
+                }
+            });
+            $cloned_users.find('*[class]').each(function () {
+                $elm = $(this);
+                $elm.attr('class', $elm.attr('class').replace(oldUid, uid));
+            });
+            var tabBody = $cloned_users.find('tbody');
+            if (tabBody.children('tr').size() != 1) {
+                var inputObject = []; var rowId = [];
+                for (var k = 0; k < $cloned_users.find('tbody').children('tr').size() ; k++) {
+                    $cloned_users.find('tbody').children('tr')[k].id = guid();
+                    rowId[k] = $cloned_users.find('tbody').children('tr')[k].id;
+                }
+                function getRowId(m) {
+                    return rowId[m];
+                }
+                $cloned_users.find('tbody>tr').each(function (index) {
+                    inputObject.push({
+                        "activityid": $(this).find('input[name="activityid"]').val(),
+                        "attributid": $(this).find('input[name="attributid"]').val(),
+                        "activityname": $(this).find('input[name="activityname"]').val(),
+                        "Name": $(this).find('td')[7].outerText,
+                        "datatype": $(this).find('td')[8].outerText,
+                        "groupid": $(this).find('input[name="groupid"]').val(),
+                        "options": $(this).find('td')[9].outerText,
+                        "RowId": getRowId(index),
+                        "IsAttached": $(this).find('input[name="IsAttached"]').val(),
+                        "SequenceNo": $(this).find('td')[11].outerText,
+                        "datatypeid": $(this).find('input[name="datatypeid"]').val()
+
+                    });
+                });
+                $(this).closest('.' + cloneTargetDiv).after($cloned_users);
+                $cloned_users.attr({ 'class': "activityScheduleForm_" + uid });
+                for (var j = 0; j < inputObject.length; j++) {
+                    $("#" + tabBody.find('tr')[j].id).load('@Url.Action("GetActivityScheduleAttributeReadView", "Home", new { area = "ActivityPlan" })', inputObject[j]);
+                }
+            }
+            if (tabBody.children('tr').size() == 1) {
+                $(this).closest('.' + cloneTargetDiv).after($cloned_users);
+                $cloned_users.attr({ 'class': "activityScheduleForm_" + uid });
+            }
+            $cloned_users.attr({ 'data-attributegrid': "activityScheduleForm_" + uid + "_Grid" });
+            $cloned_users.find("#ActivityName").focus();
+            $("#" + "activityScheduleForm_" + uid + "_assignTo").multiselect("destroy");
+            showActivityPlans.FillRoleDropDown("activityScheduleForm_" + oldUid + "_assignTo");
+            showActivityPlans.FillRoleDropDown("activityScheduleForm_" + uid + "_assignTo");
+            $("#activityScheduleForm_" + uid + "_assignTo").next().next().remove();
+            i++;
+        });
+
+        $("#" + '@activityScheduleCollapse').click(function (event) {
+            $("#" + event.currentTarget.getAttribute('id').substr(0, 57) + '_Collapse_innerDiv').toggle();
+        });
+
+        $("#" + '@addActivityScheduleAttribute').click(function (event) {
+            event.stopPropagation();
+            $("." + "@issuesNoRecordsToDisplay").remove();
+            $(".issuesNoRecordsToDisplay_" + event.currentTarget.getAttribute('id').substr(0, 57)).remove();
+            if ($('#' + activityScheduleAttributeGrid).find('tbody').find('tr').find("input[name='IsDelete'][value='0']").length > 0) {
+                var sequenceNoColIndex = -1;
+                $('#' + activityScheduleAttributeGrid).find("tr:last").find('td').each(function (index, value) {
+                    if ($(this).attr('data-id') != undefined) {
+
+                        if ($(this).attr('data-id') == "SequenceNo") {
+                            sequenceNoColIndex = index;
+                        }
+                    }
+
+                });
+
+                var lastRowSeqNo = $('#' + event.currentTarget.getAttribute('id').substr(0, 57) + "_Grid").find("tr").find("input[name='IsDelete'][value='0']").last().parent().parent().find('td:eq(' + sequenceNoColIndex + ')').text();
+            }
+
+            showActivityPlans.cropConfigurationGridInstance.doOnCropConfigurationGridAddClick({
+                inputObject: inputObject,
+                gridRowClass: event.currentTarget.getAttribute('id').substr(0, 57) + "_Grid_Rows",
+                targetGrid: event.currentTarget.getAttribute('id').substr(0, 57) + "_Grid",
+                url: '@Url.Action("GetActivityScheduleAttributeEditView", "Home", new { IsAttached = false, area = "ActivityPlan" })'
+            });
+            if ($('#' + event.currentTarget.getAttribute('id').substr(0, 57) + "_Grid").find('tbody').find('tr').find("input[name='IsDelete'][value='0']").length > 0) {
+                if (sequenceNoColIndex != undefined) {
+                    $('#' + event.currentTarget.getAttribute('id').substr(0, 57) + "_Grid").find("tr:last").find('td:eq(' + sequenceNoColIndex + ')').text(parseInt(lastRowSeqNo) + 1);
+                }
+            }
+        });
+
+        $('#' + '@deleteActivitySchedule').click(function (event) {
+
+            var activityScheduleId = $(this).attr('data-activityscheduleid');
+            var scheduleId = event.currentTarget.getAttribute('id').substr(0, 57);
+            var ScheduleName = $("#" + scheduleId).find("input[name='ActivityScheduleName']").val();
+            var allActivityScheduleForm = $(this).parent().parent().parent().parent().parent().attr('id');
+
+            var activityScheduleFormToBeDeleted = scheduleId;
+            if (activityScheduleId > 0) {
+                applicationObj.commonFunctions.cropinAJAX({
+                    url: '@Url.Action("DeleteActivitySchedule", "Home", new { area = "ActivityPlan" })',
+                    data: { activityScheduleId: activityScheduleId, ScheduleName: ScheduleName },
+                    type: 'GET',
+                    async: false,
+                    blockUI: true,
+                    success: function (response) {
+                        $("#" + activityScheduleFormToBeDeleted).hide();
+                        $('#' + '@isDeleteScheduleFormId').val("1");
+                        i = 1;
+                        showActivityPlans.reshuffleScheduleNames(allActivityScheduleForm);
+                    }
+                });
+            }
+            else {
+                $("div." + activityScheduleFormToBeDeleted).remove();
+                i = 1;
+                showActivityPlans.reshuffleScheduleNames(allActivityScheduleForm);
+            }
+        });
+
+        $("#" + '@DAS').keypress(function (e) {
+            if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                return false;
+            }
+        });
+
+        $("#" + '@activityScheduleFormId').find("#ActivityName").focus();
+
+        $("#" + '@IntervalDays').keypress(function (e) {
+            if (e.which != 8 && e.which != 45 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                return false;
+            }
+        });
+
+        showActivityPlans.FillRoleDropDown(assignToId);
+        if ($("#" + '@radioButton3').attr('checked') == "checked") {
+            $("#" + '@DaysbeforeSowing').hide();
+            $("#" + '@SpecificStartDate').hide();
+        }
+        $("#" + '@radioButton1').click(function (e) {
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_SpecificStartDate').datepicker({ format: '@Model.DateFormat', autoSize: true, changeYear: true, changeMonth: true, showButtonPanel: true, autoclose: true, todayHighlight: true });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_DaysbeforeSowing').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_SpecificStartDate').show();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_DaysSowing').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_DaysbeforeSowing').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78) + '_DaysSowing').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#DaysAfterSowingRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78)).attr({ 'checked': false });
+            $("#DaysbeforeSowingRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(44, 78)).attr({ 'checked': false });
+
+        });
+        $("#" + '@radioButton2').click(function (e) {
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_SpecificStartDate').datepicker({ format: '@Model.DateFormat', autoSize: true, changeYear: true, changeMonth: true, showButtonPanel: true, autoclose: true, todayHighlight: true });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_DaysbeforeSowing').show();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_SpecificStartDate').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_DaysSowing').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_SpecificStartDate').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78) + '_DaysSowing').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#SpecificStartDateRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78)).attr({ 'checked': false });
+            $("#DaysAfterSowingRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(43, 78)).attr({ 'checked': false });
+
+        });
+        $("#" + '@radioButton3').click(function (e) {
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_SpecificStartDate').datepicker({ format: '@Model.DateFormat', autoSize: true, changeYear: true, changeMonth: true, showButtonPanel: true, autoclose: true, todayHighlight: true });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_DaysbeforeSowing').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_SpecificStartDate').hide();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_DaysSowing').show();
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_DaysbeforeSowing').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78) + '_SpecificStartDate').children().find('input,select').each(function () {
+                $(this).val('');
+            });
+            $("#SpecificStartDateRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78)).attr({ 'checked': false });
+            $("#DaysbeforeSowingRadio_activityScheduleForm_" + e.currentTarget.getAttribute('id').substr(42, 78)).attr({ 'checked': false });
+
+        });
+        if ($('#' + '@DaysbeforeSowing').children().find('input').val() != "" && $('#' + '@DaysbeforeSowing').children().find('input').val() != undefined) {
+            $("#" + '@radioButton1').attr({ 'checked': false });
+            $("#" + '@radioButton2').attr({ 'checked': 'checked' });
+            $("#" + '@radioButton3').attr({ 'checked': false });
+            $('#' + '@DaysbeforeSowing').show();
+            $('#' + '@DAS').hide();
+            $('#' + '@SpecificStartDate').hide();
+        }
+        if ($('#' + '@DAS').children().find('input').val() != "" && $('#' + '@DAS').children().find('input').val() != undefined) {
+            $("#" + '@radioButton1').attr({ 'checked': false });
+            $("#" + '@radioButton2').attr({ 'checked': false });
+            $("#" + '@radioButton3').attr({ 'checked': 'checked' });
+            $('#' + '@DaysbeforeSowing').hide();
+            $('#' + '@DAS').show();
+            $('#' + '@SpecificStartDate').hide();
+        }
+        if ($('#' + '@SpecificStartDate').children().find('input').val() != "" && $('#' + '@SpecificStartDate').children().find('input').val() != undefined) {
+            $("#" + '@radioButton1').attr({ 'checked': 'checked' });
+            $("#" + '@radioButton2').attr({ 'checked': false });
+            $("#" + '@radioButton3').attr({ 'checked': false });
+            $('#' + '@DaysbeforeSowing').hide();
+            $('#' + '@DAS').hide();
+            $('#' + '@SpecificStartDate').show();
+        }
+        function guid() {
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+              s4() + '-' + s4() + s4() + s4();
+        }
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+              .toString(16)
+              .substring(1);
+        }
+
+    });
+</script> 
