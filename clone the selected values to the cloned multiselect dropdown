@@ -1,0 +1,43 @@
+// cloning the multiselect selected value from original div to cloned div require 
+// get all the select value from parent div 
+ var a=[];
+            for(var l=0;l<$("#" + "activityScheduleForm_" + oldUid + "_assignTo").find('option:selected').length;l++) {
+               a[l]= $("#" + "activityScheduleForm_" + oldUid + "_assignTo").find('option:selected')[l].value;}  
+               
+               
+  // Then pass the values as array or string to your multiselect function.
+  // a will be your assignToIds in the function FunctionName()
+   self.functionName = function (id, assignToIds) {
+        var roleId = $("#" + id).attr("data-value");        
+        if (assignToIds == null) {
+            assignToIds = $.map(roleId.split(","), $.trim);
+        }
+        var str = '';
+        var seperateRolesList = (self.roleList).split(";");
+        for (var i = 0; i < seperateRolesList.length; i++) {
+            var arr = seperateRolesList[i].split(":");
+            if ($.inArray(arr[0], assignToIds) > -1) {
+                str = str + "<option role='role' selected value='" + arr[0] + "'>" + arr[1] + "</option>";
+            }
+            else {
+                str = str + "<option role='role' value='" + arr[0] + "'>" + arr[1] + "</option>";
+            }
+        }
+        $("#" + id).html('');
+        $("#" + id).append(str);     
+        $("#" + id).multiselect({
+            enableFiltering: true,
+            enableCaseInsensitiveFiltering: true,
+            includeSelectAllOption: true,
+            maxHeight: 200,
+            buttonWidth: '100%',
+            nonSelectedText: noneSelected,
+            selectAllText: applicationObj.localizedStrings.SelectAll,
+            allSelectedText: applicationObj.localizedStrings.AllSelected,
+            nSelectedText: applicationObj.localizedStrings.Selected,
+            onDropdownHide: function (event) {
+                $(event.currentTarget).find('.multiselect-clear-filter').click();
+                $(event.currentTarget).find('.multi-no-results').hide();
+            }
+        });       
+        $("#" + id).multiselect('rebuild');
