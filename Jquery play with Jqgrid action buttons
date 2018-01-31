@@ -1,0 +1,77 @@
+       restrict: 'E',
+            link: function (scope, element, attrs) {
+                var table;
+                var table; var htmlString; var oldVal;
+                scope.$watch('', function (newValue) {
+
+                    applicationObj.commonFunctions.blockUI({
+@@ -370,8 +370,15 @@
+                                                $(value).attr("gadata", "ConfigureSurveyForms");
+                                                $(value).attr("galabel", "RestoreIconOnGrid");
+                                                $('#' + $(value).attr("id")).hide();
+                                                $('#' + $(value).attr("id")).on('click', function () {
+                                                    $("#" + self.processListGrid).trigger('reloadGrid');
+                                                $('#' + $(value).attr("id")).on('click', function () {                                                  
+                                                        $("#" + rowId).find('td').find('input')[1].type = "hidden";
+                                                        $("#" + rowId).find('td')[2].id = rowId;
+                                                        htmlString = $("#" + rowId).find('td')[2].innerHTML;
+                                                        $("#" + rowId).find('td')[2].innerText = oldVal;
+                                                        $('#' + $(value).attr("id")).hide();
+                                                        $('#save_' + rowId).hide();
+                                                        $('#info_' + rowId).show();
+                                                        $('#edit_' + rowId).show();                                                    
+                                                });
+                                               
+                                            }
+@@ -382,6 +389,14 @@
+                                                $('#' + $(value).attr("id")).hide();
+                                                $('#' + $(value).attr("id")).on('click', function () {
+                                                    rowData.FormSequence = $('#' + rowId + '_FormSequence').val();
+                                                    $("#" + rowId).find('td').find('input')[1].type = "hidden";
+                                                    $("#" + rowId).find('td')[2].id = rowId;
+                                                    htmlString = $("#" + rowId).find('td')[2].innerHTML;
+                                                    $("#" + rowId).find('td')[2].innerText = $('#' + rowId + '_FormSequence').val();
+                                                    $('#' + $(value).attr("id")).hide();                                                   
+                                                    $('#info_' + rowId).show();
+                                                    $('#edit_' + rowId).show();
+                                                    $('#restore_' + rowId).hide();                                                    
+                                                    if (rowData.FormSequence == "")
+                                                    {
+                                                        applicationObj.commonFunctions.formErrorWindow(document.ProvideSequence);
+@@ -399,9 +414,8 @@
+                                                                data: rowData,
+                                                                method: 'POST',
+                                                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                                            }).success(function (response) {                                                              
+                                                                $("#" + self.processListGrid).trigger('reloadGrid');
+                                                                applicationObj.cropInMessageModal.showModal({
+                                                            }).success(function (response) {                                                             
+                                                                    applicationObj.cropInMessageModal.showModal({
+                                                                    message: response.saveSuccessfullyMessage,
+                                                                    messageType: 3,
+                                                                    width: "300px",
+@@ -423,12 +437,21 @@
+                                                $(value).attr("gadata", "ConfigureSurveyForms");
+                                                $(value).attr("galabel", "EditIconOnGrid");
+                                                $('#' + $(value).attr("id")).on('click', function () {
+                                                    $("#" + gridId).jqGrid('editRow', rowId, {});
+                                                    if ($("#" + rowId).find('td').find('input').size() != 0) {
+                                                        $("#" + rowId).find('td')[2].id = rowId;
+                                                        var evalStr = $("#" + rowId).find('td')[2].innerText;var html;
+                                                        if (evalStr === "") { html = "<input type='text'  role='textbox'  style='width: 98%;' class='editable' id=" + rowId + '_FormSequence' + ">"; }
+                                                        else { html = "<input type='text'  role='textbox'  style='width: 98%;' value=" + evalStr + " class='editable' id=" + rowId + '_FormSequence' + ">"; }
+                                                        $("#" + rowId).find('td')[2].innerHTML = html;                                                      
+                                                    } else {
+                                                        $("#" + gridId).jqGrid('editRow', event.currentTarget.id.substring(5,9), {});
+                                                    }
+                                                    oldVal = $('#' + rowId + '_FormSequence').val();
+                                                    $('#restore_' + rowId).show();
+                                                    $('#save_' + rowId).show();
+                                                    $('#info_' + rowId).hide();
+                                                    $('#edit_' + rowId).hide();                                                 
+                                                  
+                                                    $('#edit_' + rowId).hide();
+                                                   
+                                                });
+                                            }
+                                            if(name =="delete")
